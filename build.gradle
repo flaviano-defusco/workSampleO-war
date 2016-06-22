@@ -55,13 +55,14 @@ dependencies {
 }
 
 ext {
-// Open the Git repository in the current directory, pull with rebase, get commit id of HEAD, and tag
+// Open the Git repository in the current directory, pull with rebase, get commit id of HEAD, tag the release and push (only) the tag
     git = Grgit.open(dir: project.file('.'))
     git.pull(rebase: true)
 	revision = git.head().id
 	project.version = "2.0.1.${git.head().abbreviatedId}"
     myTag = "REL-${project.version.toString()}"
 	git.tag.add(name: myTag, force: true)
+	git.push(tags: true)
 }
 
 task init {
