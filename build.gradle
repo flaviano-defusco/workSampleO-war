@@ -1,0 +1,104 @@
+import org.ajoberstar.grgit.*
+
+buildscript {
+ repositories {
+      maven {
+          url "https://plugins.gradle.org/m2/"
+      }
+  }
+  dependencies {
+	   classpath 'org.ajoberstar:gradle-git:1.5.0'
+  }
+}
+
+plugins {
+  id 'org.ajoberstar.grgit' version '1.5.0'
+  id 'org.ajoberstar.github-pages' version '1.5.0'
+  id 'org.ajoberstar.release-base' version '1.5.0'
+}
+
+apply plugin: 'groovy'
+
+repositories { 
+    jcenter()
+    mavenCentral()
+    maven {
+			url 'https://plugins.gradle.org/m2/'
+    }
+    ivy {
+        url "http://repository.springsource.com/ivy/bundles/release"
+        layout "pattern", {
+            artifact "[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        }
+    }
+    ivy {
+        url "http://repository.springsource.com/ivy/bundles/external"
+        layout "pattern", {
+		    artifact "[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+            artifact "[organisation]/com.springsource.[organisation].[module]/[revision]/com.springsource.[organisation].[artifact]-[revision].[ext]"
+        }
+    }
+}
+
+configurations{
+    releaseJars {
+		extendsFrom compile
+	}
+}
+
+dependencies {
+    compile(
+        [group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.6'],
+		[group: 'com.google.guava', name: 'guava', version: '16.0'],
+		[group: 'junit', name: 'junit', version: '4.12']
+	)
+}
+
+ext {
+// Open the Git repository in the current directory, pull with rebase, get commit id of HEAD, and tag
+    git = Grgit.open(dir: project.file('.'))
+    git.pull(rebase: true)
+	revision = git.head().id
+	project.version = "2.0.1.${git.head().abbreviatedId}"
+    myTag = "REL-${project.version.toString()}"
+	git.tag.add(name: myTag, force: true)
+}
+
+task init {
+    delete "${buildDir}/jars"
+    mkdir "${buildDir}/jars"
+    delete stagingDir
+    mkdir stagingDir
+}
+
+task copyUno(type: Copy, dependsOn: 'init') {
+    into "${buildDir}/jars"
+    from configurations.releaseJars
+}
+
+task copyReleaseJars(type: Copy, dependsOn: 'copyUno') {
+    into "${buildDir}/jars"
+	from('src/dist') {
+		include 'VERSION.txt'
+		expand(
+			buildDate: new Date(),
+			revision : revision,
+			version  : project.version
+		)
+	}
+}
+
+jar.archiveName 'warO.jar'
+jar.manifest {
+    attributes 'Main-Class' : 'net.codetojoy.waro.Main' 
+    attributes 'Class-Path' : 'jars/groovy-all-2.4.6.jar jars/guava-collections-16.0.jar jars/guava-base-16.0.jar'
+}
+
+task myBuild(dependsOn: ['test', 'copyReleaseJars', 'jar']) << {
+    ant.zip(destfile: "${buildDir}/warO.zip") {
+        zipfileset(dir: "${buildDir}/jars", prefix: "jars")
+        zipfileset(file: "${buildDir}/libs/warO.jar")
+    }
+
+    ant.unzip(src: "${buildDir}/warO.zip", dest: project.stagingDir)
+}
