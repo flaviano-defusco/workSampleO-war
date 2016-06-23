@@ -3,4 +3,6 @@ dist/
 logs/ 
 output/ 
 test_data/ 
-.gradle/ 
+.gradle/
+*.tmp
+*.mf
