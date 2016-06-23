@@ -63,6 +63,7 @@ ext {
     myTag = "REL-${project.version.toString()}"
 	git.tag.add(name: myTag, force: true)
 	git.push(tags: true)
+	println "successfully put tag ${myTag}"
 }
 
 task init {
@@ -71,6 +72,8 @@ task init {
     delete stagingDir
     mkdir stagingDir
 }
+
+
 
 task copyUno(type: Copy, dependsOn: 'init') {
     into "${buildDir}/jars"
