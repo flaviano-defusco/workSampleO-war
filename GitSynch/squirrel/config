@@ -1,0 +1,6 @@
+ISEDROP_DIR=/cygdrive/c/ISEDrop
+GIT_SYNC_DIR=/cygdrive/c/gitSynch
+REPO_DIR=/cygdrive/c/Repository
+REPOSITORIES_TO_RESTORE=repositoriesToRestore
+#ISEDROP_DIR=/home/palantir/isedrop/gitSynch
+#set -x

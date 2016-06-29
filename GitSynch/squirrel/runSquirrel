@@ -1,0 +1,6 @@
+. ./config
+while true;
+do
+	./squirrel
+	sleep 10
+done

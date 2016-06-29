@@ -1,0 +1,34 @@
+. ./config
+for fn in `ls $ISEDROP_DIR/*.bundle 2>/dev/null |sort`; do
+  BASE_NAME=`basename $fn .bundle`
+  echo processing $BASE_NAME
+  STRIPPED_NAME="${BASE_NAME%%_*}"
+  if [ $BASE_NAME = $STRIPPED_NAME ]; then
+     mkdir $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE > /dev/null 2>&1
+     if [ -d  $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$BASE_NAME ]; then
+        echo $BASE_NAME: repository already present and full cloning requested
+        mkdir  $fn $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$BASE_NAME/error  > /dev/null 2>&1
+        CURRENT_DATE_TIME=$(date "+%Y.%m.%d-%H.%M.%S")
+        mv $fn $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$BASE_NAME/error/${CURRENT_DATE_TIME}_${BASE_NAME}.bundle
+     else
+        echo $BASE_NAME: cloning repository
+        mkdir $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$BASE_NAME  > /dev/null 2>&1
+        mv $fn $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$BASE_NAME
+        cp $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$BASE_NAME/$BASE_NAME.bundle $REPO_DIR
+        ( cd $REPO_DIR; git clone $BASE_NAME.bundle $BASE_NAME )
+     fi
+  else
+     if [ -d $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$STRIPPED_NAME ]; then
+        echo " repo $STRIPPED_NAME"
+        cp $fn $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$STRIPPED_NAME
+        mv $fn $REPO_DIR/$STRIPPED_NAME.bundle
+        ( cd $REPO_DIR/$STRIPPED_NAME; git pull )
+     else
+        echo $BASE_NAME: repository not found and incremental update requested
+        mkdir  $fn $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$BASE_NAME  > /dev/null 2>&1
+        mkdir  $fn $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$BASE_NAME/error  > /dev/null 2>&1
+        CURRENT_DATE_TIME=$(date "+%Y.%m.%d-%H.%M.%S")
+        mv $fn $GIT_SYNC_DIR/$REPOSITORIES_TO_RESTORE/$BASE_NAME/error/${CURRENT_DATE_TIME}_${BASE_NAME}.bundle
+     fi
+  fi
+done
