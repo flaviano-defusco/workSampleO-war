@@ -42,7 +42,7 @@ goto main_end
 call %GIT_SYNCH_HOME%\UniqueName Bundle
 set REPO_BUNDLE=%REPO_TO_CLONE%_%UniqueName%.bundle
 IF "%LOG_DISABLED%" == "" echo %REPO_TO_CLONE%: %lastTag%_list.txt not empty, about to create bundle %REPO_BUNDLE%
-git bundle create %GIT_SYNCH_HOME%\%REPOSITORIES_TO_REPLICATE%\%REPO_TO_CLONE%\%REPO_BUNDLE% %lastTag%..master 2>&1
+git bundle create %GIT_SYNCH_HOME%\%REPOSITORIES_TO_REPLICATE%\%REPO_BUNDLE% %lastTag%..master 2>&1
 IF "%LOG_DISABLED%" == "" echo %REPO_TO_CLONE%: about to tag %UniqueName%
 git tag %UniqueName% 2>&1
 IF "%LOG_DISABLED%" == "" echo %REPO_TO_CLONE%: about to push tag %UniqueName%
